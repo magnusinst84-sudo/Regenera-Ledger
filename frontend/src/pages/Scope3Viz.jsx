@@ -1,30 +1,49 @@
 import { useState } from 'react';
 import NetworkGraph from '../components/NetworkGraph';
 import AIExplanationPanel from '../components/AIExplanationPanel';
+import api, { analyzeScope3 } from '../api/api';
 
-const MOCK_AI = `Scope 3 Supply Chain Analysis — Gemini Reasoning:
-
-Tier-1 Suppliers: 4 direct suppliers identified. Steel Corp and Plastics Inc contribute ~68% of your upstream Scope 3 emissions.
-
-High-Risk Nodes:
-• Steel Corp: High carbon intensity (2.1 tCO₂ per $1000 revenue). No verified carbon reduction plan.
-• Plastics Inc: Flagged for incomplete disclosure. Likely under-reporting.
-
-Downstream Emissions: Logistics & end-of-life product emissions are not yet accounted for. Estimated additional 15% of total Scope 3.
-
-Recommendation: Engage Steel Corp and Plastics Inc for joint emission reduction programs immediately.`;
 
 export default function Scope3Viz() {
     const [loading, setLoading] = useState(false);
     const [aiText, setAiText] = useState('');
     const [fileUploaded, setFileUploaded] = useState(false);
+    const [graphData, setGraphData] = useState({ nodes: [], edges: [], summary: {} });
+
+    // Files state
+    const [esgFile, setEsgFile] = useState(null);
+    const [supplierFile, setSupplierFile] = useState(null);
 
     const handleAnalyze = async () => {
-        setLoading(true); setAiText('');
-        await new Promise((r) => setTimeout(r, 1500));
-        setAiText(MOCK_AI);
-        setLoading(false);
+        if (!esgFile || !supplierFile) {
+            alert("Please upload both an ESG report and a supplier manifest.");
+            return;
+        }
+
+        setLoading(true);
+        setAiText('');
+
+        try {
+            const formData = new FormData();
+            formData.append('esg_file', esgFile);
+            formData.append('supplier_file', supplierFile);
+
+            const response = await analyzeScope3(formData);
+
+            const { result } = response.data;
+            setAiText(result.forensic_explanation || "No forensic explanation returned.");
+            if (result.calculated_graph) {
+                setGraphData(result.calculated_graph);
+            }
+        } catch (err) {
+            console.error("Scope 3 Analysis failed:", err);
+            setAiText("Failed to analyze Scope 3 data. Please check your files and try again.");
+        } finally {
+            setLoading(false);
+        }
     };
+
+    const hasData = graphData.nodes && graphData.nodes.length > 0;
 
     return (
         <div>
@@ -33,11 +52,16 @@ export default function Scope3Viz() {
                     <h1 className="page-title">Scope 3 Visualization</h1>
                     <p className="page-sub">Supply chain network graph with AI-powered risk reasoning</p>
                 </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                     <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
-                        📁 Upload Manifest
+                        {esgFile ? '✅ ESG Report' : '📁 Upload ESG'}
+                        <input type="file" accept=".pdf" style={{ display: 'none' }}
+                            onChange={(e) => setEsgFile(e.target.files[0])} />
+                    </label>
+                    <label className="btn btn-secondary" style={{ cursor: 'pointer' }}>
+                        {supplierFile ? '✅ Manifest' : '📁 Upload Manifest'}
                         <input type="file" accept=".csv,.xlsx,.pdf" style={{ display: 'none' }}
-                            onChange={() => setFileUploaded(true)} />
+                            onChange={(e) => setSupplierFile(e.target.files[0])} />
                     </label>
                     <button id="scope3-analyze" className="btn btn-primary" onClick={handleAnalyze} disabled={loading}>
                         {loading ? '⏳ Analyzing...' : '🔍 Analyze with Gemini'}
@@ -54,24 +78,29 @@ export default function Scope3Viz() {
                         <span style={{ color: 'var(--text-2)', textTransform: 'capitalize' }}>{r} Risk</span>
                     </div>
                 ))}
-                <div style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--text-muted)' }}>
-                    {fileUploaded ? '✅ Manifest loaded' : 'Upload supplier manifest for real data'}
-                </div>
             </div>
 
             {/* Graph */}
             <div className="card mb-24">
                 <div className="card-title mb-16">Supply Chain Network</div>
-                <NetworkGraph />
+                {hasData ? (
+                    <NetworkGraph nodes={graphData.nodes} edges={graphData.edges} />
+                ) : (
+                    <div className="empty-state py-40 text-center">
+                        <div className="empty-icon mb-16" style={{ fontSize: '48px' }}>🌐</div>
+                        <h3>No Data Visualized</h3>
+                        <p className="text-muted">Upload your ESG report and supplier manifest to generate your supply chain network map.</p>
+                    </div>
+                )}
             </div>
 
             {/* Stats row */}
             <div className="stats-grid mb-24">
                 {[
-                    { icon: '🔗', value: '4', label: 'Tier-1 Suppliers' },
-                    { icon: '🏭', value: '2', label: 'Tier-2 Suppliers' },
-                    { icon: '⛔', value: '2', label: 'High-Risk Nodes' },
-                    { icon: '📦', value: '68%', label: 'Emission Share (Top 2)' },
+                    { icon: '🔗', value: graphData.summary?.total_suppliers || '0', label: 'Total Suppliers' },
+                    { icon: '👁️', value: graphData.summary?.disclosed || '0', label: 'Disclosed' },
+                    { icon: '🕵️', value: graphData.summary?.hidden || '0', label: 'Hidden/Undisclosed' },
+                    { icon: '📦', value: `${graphData.summary?.total_emissions_tco2e || '0'}`, label: 'Total tCO2e (calc)' },
                 ].map((s) => (
                     <div className="stat-card" key={s.label}>
                         <span className="stat-icon">{s.icon}</span>

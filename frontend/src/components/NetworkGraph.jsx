@@ -20,19 +20,48 @@ const DEFAULT_EDGES = [
 ];
 
 const RISK_COLOR = { high: '#ff4d6d', medium: '#ffd166', low: '#00f5a0' };
-const NODE_COLOR = { company: '#00f5a0', supplier: '#00d4ff', tier2: '#a78bfa' };
+const NODE_COLOR = { company: '#00f5a0', supplier: '#00d4ff', tier2: '#a78bfa', disclosed: '#00d4ff', hidden: '#fbbf24' };
 
-export default function NetworkGraph({ nodes = DEFAULT_NODES, edges = DEFAULT_EDGES }) {
+export default function NetworkGraph({ nodes = [], edges = [] }) {
     const svgRef = useRef(null);
 
-    const getNode = (id) => nodes.find((n) => n.id === id);
+    // Filter nodes to ensure we have a 'company' node if possible, or add it
+    let cleanNodes = [...nodes];
+    if (cleanNodes.length > 0 && !cleanNodes.find(n => n.id === 'Company')) {
+        // Find if there's any 'company' type node
+        const existingCompany = cleanNodes.find(n => n.type === 'company');
+        if (!existingCompany) {
+            // We'll treat the first node or a new node as Company center
+        }
+    }
+
+    // Auto-layout: Assign x/y if missing
+    const layoutNodes = cleanNodes.map((node, i) => {
+        if (node.x !== undefined && node.y !== undefined) return node;
+
+        // Root node at center
+        if (node.id === 'Company' || node.type === 'company') {
+            return { ...node, x: 300, y: 200 };
+        }
+
+        // Radial layout for others
+        const angle = (i / (nodes.length - 1)) * Math.PI * 2;
+        const radius = node.type === 'tier2' || node.type === 'hidden' ? 160 : 100;
+        return {
+            ...node,
+            x: 300 + Math.cos(angle) * radius,
+            y: 200 + Math.sin(angle) * radius
+        };
+    });
+
+    const getNode = (id) => layoutNodes.find((n) => n.id === id);
 
     return (
         <div style={{ width: '100%', overflow: 'auto' }}>
             <svg
                 ref={svgRef}
                 viewBox="0 0 600 400"
-                style={{ width: '100%', maxHeight: '380px', display: 'block' }}
+                style={{ width: '100%', maxHeight: '420px', display: 'block', background: 'rgba(0,0,0,0.1)', borderRadius: '8px' }}
             >
                 <defs>
                     <marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
@@ -40,16 +69,20 @@ export default function NetworkGraph({ nodes = DEFAULT_NODES, edges = DEFAULT_ED
                     </marker>
                     {['high', 'medium', 'low'].map(r => (
                         <marker key={r} id={`arrow-${r}`} markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
-                            <path d="M0,0 L0,6 L6,3 z" fill={RISK_COLOR[r]} />
+                            <path d="M0,0 L0,6 L6,3 z" fill={RISK_COLOR[r] || '#555'} />
                         </marker>
                     ))}
                 </defs>
 
                 {/* Edges */}
                 {edges.map((e, i) => {
-                    const from = getNode(e.from);
-                    const to = getNode(e.to);
+                    // Backend uses 'source' and 'target', old mock used 'from' and 'to'
+                    const sourceId = e.source || e.from;
+                    const targetId = e.target || e.to;
+                    const from = getNode(sourceId);
+                    const to = getNode(targetId);
                     if (!from || !to) return null;
+
                     return (
                         <line
                             key={i}
@@ -58,29 +91,29 @@ export default function NetworkGraph({ nodes = DEFAULT_NODES, edges = DEFAULT_ED
                             strokeWidth="1.5"
                             strokeOpacity="0.6"
                             strokeDasharray={e.risk === 'high' ? '0' : '5,3'}
-                            markerEnd={`url(#arrow-${e.risk})`}
+                            markerEnd={`url(#arrow-${e.risk || 'low'})`}
                         />
                     );
                 })}
 
                 {/* Nodes */}
-                {nodes.map((node) => (
+                {layoutNodes.map((node) => (
                     <g key={node.id} transform={`translate(${node.x},${node.y})`}>
                         <circle
                             r={node.type === 'company' ? 28 : 20}
-                            fill={`${NODE_COLOR[node.type]}22`}
-                            stroke={NODE_COLOR[node.type]}
+                            fill={`${NODE_COLOR[node.type] || '#ccc'}22`}
+                            stroke={NODE_COLOR[node.type] || '#ccc'}
                             strokeWidth="1.5"
                         />
                         <text
                             textAnchor="middle"
                             dy="0.3em"
                             fontSize={node.type === 'company' ? 10 : 8}
-                            fill={NODE_COLOR[node.type]}
+                            fill={NODE_COLOR[node.type] || '#ccc'}
                             fontWeight="600"
                             fontFamily="Inter, sans-serif"
                         >
-                            {node.label.length > 10 ? node.label.slice(0, 10) + '…' : node.label}
+                            {node.label.length > 12 ? node.label.slice(0, 10) + '…' : node.label}
                         </text>
                     </g>
                 ))}

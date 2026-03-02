@@ -125,9 +125,14 @@ async def analyze_scope3(
     supplier_upload = await save_upload(supplier_file)
 
     try:
-        # ── T2/T4: Extract text from both files ──
+        # ── T2/T4: Extract text from ESG report ──
         esg_text = extract_text(esg_upload["saved_path"])
-        supplier_text = extract_text(supplier_upload["saved_path"])
+        
+        # ── T2: Parse supplier manifest into structured data ──
+        manifest_data = parse_manifest(supplier_upload["saved_path"])
+        
+        # ── T2: Build supplier network graph (nodes/edges) ──
+        graph_data = process_scope3_data(esg_text, manifest_data)
 
         # ── Save documents to Firestore ──
         report_id = create_document("esg_reports", {
@@ -137,20 +142,20 @@ async def analyze_scope3(
             "uploaded_at": datetime.now(timezone.utc).isoformat(),
         })
 
-        scope3_doc_id = create_document("scope3_documents", {
-            "user_id": user["id"],
-            "esg_report_id": report_id,
-            "filename": supplier_upload["original_filename"],
-            "extracted_text": supplier_text,
-            "uploaded_at": datetime.now(timezone.utc).isoformat(),
-        })
-
         # ── T1: Gemini Scope 3 Analysis ──
+        # Provide raw text for reasoning, but the graph_data summary helps too
+        supplier_raw_text = extract_text(supplier_upload["saved_path"])
         try:
-            prompt = build_scope3_prompt(esg_text, supplier_text)
-            result = await call_gemini_async(prompt)
+            prompt = build_scope3_prompt(esg_text, supplier_raw_text)
+            ai_result = await call_gemini_async(prompt)
         except (ValueError, RuntimeError) as e:
             raise HTTPException(status_code=502, detail=f"Gemini AI error: {e}")
+
+        # Combine AI reasoning with the calculated graph data
+        result = {
+            **ai_result,
+            "calculated_graph": graph_data
+        }
 
         # ── T4: Save analysis result ──
         result_id = create_document("analysis_results", {
