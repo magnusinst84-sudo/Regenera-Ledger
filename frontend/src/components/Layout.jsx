@@ -30,6 +30,7 @@ export default function Layout() {
         <div className="app-shell">
             <aside className="sidebar">
                 <div className="sidebar-logo">
+                    <img src="/logo.png" alt="Regenera Ledger" style={{ width: '32px', height: '32px', borderRadius: '8px' }} />
                     <div className="logo-text">Regenera Ledger</div>
                 </div>
 
