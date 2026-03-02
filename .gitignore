@@ -1,0 +1,39 @@
+# Standard .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+
+# Node.js
+node_modules/
+dist/
+.DS_Store
+
+# Secrets
+*.json
+!firebase-service-account.example.json
+backend/.env
+frontend/.env
+*.key
+.firebase/
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# ── Internal / Teammate Folders ──────────────────────────────────
+# Teammate working directories — not part of the deployable app
+T1/
+T2/
+T3/
+T4/
+
+# Internal planning documents — do not expose publicly
+ESG_Platform_Hackathon_Plan.pdf
+TEAM_PLAN.md
+farmers filler/

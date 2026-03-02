@@ -1,0 +1,16 @@
+supplier,quantity,origin,destination,transport_mode,distance_km
+"Green Fields Co",250,Mumbai,Delhi,road,1400
+"EcoTex Fabrics",80,Chennai,Bengaluru,truck,350
+"AgroSupply Ltd",500,Punjab,Mumbai,rail,1900
+"Coastal Freight",120,Kochi,Chennai,sea,650
+"SkyLogistics",40,Delhi,Hyderabad,air,1500
+"Northern Grains",300,Haryana,Kolkata,rail,1700
+"ChemPack India",90,Ahmedabad,Pune,road,610
+"FastCargo",60,Bengaluru,Chennai,truck,340
+"HiddenVendor X",200,Shenzhen,Mumbai,sea,6700
+"ShenzhenParts",150,Guangzhou,Delhi,air,5800
+"SubSupplier Z",75,Jakarta,Chennai,sea,3200
+"LocalFarm Coop",100,Rajasthan,Delhi,road,600
+"TierTwo Anon",50,Vietnam,Mumbai,sea,5300
+"AlphaGoods",180,Nashik,Mumbai,truck,180
+"BetaExports",220,Surat,Ahmedabad,road,265

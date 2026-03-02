@@ -1,0 +1,76 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helper functions ──
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isRole(role) {
+      return getUserData().role == role;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // ── Users ──
+    match /users/{userId} {
+      allow read: if isAuthenticated() && isOwner(userId);
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isAuthenticated() && isOwner(userId);
+    }
+
+    // ── ESG Reports ──
+    match /esg_reports/{reportId} {
+      allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow create: if isAuthenticated() && isRole('company');
+      allow delete: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+    }
+
+    // ── Scope 3 Documents ──
+    match /scope3_documents/{docId} {
+      allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow create: if isAuthenticated() && isRole('company');
+      allow delete: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+    }
+
+    // ── Analysis Results ──
+    match /analysis_results/{resultId} {
+      allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow create: if isAuthenticated();
+      // Analysis results are immutable — no update/delete
+    }
+
+    // ── Farmer Profiles ──
+    match /farmer_profiles/{profileId} {
+      allow read: if isAuthenticated();  // Companies need to read for matching
+      allow create: if isAuthenticated() && isRole('farmer');
+      allow update: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+    }
+
+    // ── Carbon Estimations ──
+    match /carbon_estimations/{estId} {
+      allow read: if isAuthenticated();  // Companies need to read for matching
+      allow create: if isAuthenticated();
+    }
+
+    // ── Matching Results ──
+    match /matching_results/{matchId} {
+      allow read: if isAuthenticated() && resource.data.company_user_id == request.auth.uid;
+      allow create: if isAuthenticated() && isRole('company');
+    }
+
+    // ── Audit Logs ──
+    match /audit_logs/{logId} {
+      allow read: if isAuthenticated() && resource.data.user_id == request.auth.uid;
+      allow create: if isAuthenticated();
+      // Audit logs are immutable — no update/delete
+    }
+  }
+}

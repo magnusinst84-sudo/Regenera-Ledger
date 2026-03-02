@@ -1,0 +1,70 @@
+ACME Manufacturing Ltd.
+Sustainability Report 2023 — ESG Disclosure
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EXECUTIVE SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ACME Manufacturing is committed to transparent environmental reporting in line
+with GRI Standards and the TCFD framework. This report covers our direct (Scope 1),
+indirect energy (Scope 2), and supply-chain (Scope 3) greenhouse gas emissions for
+the financial year ending 31 December 2023.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GREENHOUSE GAS EMISSIONS SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Total Scope 1 emissions:  1,200 tCO2e
+Total Scope 2 emissions:  3,800 tCO2e
+Total emissions: 5,000 tCO2e
+
+We have achieved a 12% reduction in direct emissions compared to our 2022 baseline
+of 5,700 tCO2e, primarily through renewable energy procurement and fleet electrification.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SCOPE 3 — SUPPLY CHAIN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+We procure materials from the following disclosed Tier 1 suppliers:
+
+- Green Fields Co (Mumbai) — agricultural raw materials, road transport
+- EcoTex Fabrics (Chennai) — textile inputs, truck transport
+- AgroSupply Ltd (Punjab) — grain commodities, rail transport
+- Northern Grains (Haryana) — secondary grain sourcing, rail transport
+- AlphaGoods (Nashik) — processed goods, truck transport
+- BetaExports (Surat) — manufactured components, road transport
+
+Our supplier management programme requires all Tier 1 vendors to submit
+annual carbon disclosures. We partner with SGS India for third-party auditing
+of our top 6 suppliers, who collectively account for approximately 65% of
+our sourced volume.
+
+We acknowledge that subcontractor and Tier 2 logistics data remain incomplete.
+We are working with our procurement team to expand Scope 3 Category 4
+(upstream transportation) disclosures in the 2024 cycle.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CARBON OFFSET STRATEGY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ACME has purchased 500 tCO2e of Verified Carbon Units (VCUs) through the
+Verra registry. We are actively exploring direct partnerships with farming
+communities in rural India to expand nature-based solutions and support
+smallholder carbon credit generation.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CLIMATE TARGETS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• Net Zero by 2040
+• 50% reduction in Scope 1+2 by 2030 (vs 2019 baseline)
+• Full Scope 3 Category 4 mapping by 2025
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+THIRD-PARTY ASSURANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This report has been independently assured by Bureau Veritas India Pvt. Ltd.
+in accordance with ISAE 3000 (Revised) to a limited assurance level.
+
+Confidential — For hackathon demo purposes only.

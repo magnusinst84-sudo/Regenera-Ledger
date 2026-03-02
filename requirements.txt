@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+google-genai
+pydantic[email]
+python-jose[cryptography]
+bcrypt
+python-dotenv
+python-multipart
+firebase-admin
+pdfminer.six
+pandas
