@@ -16,8 +16,12 @@ dist/
 
 # Secrets
 *.json
-!firebase-service-account.example.json
+!package.json
+!package-lock.json
+!*/**/package.json
+!*/**/package-lock.json
 !frontend/vercel.json
+!firebase-service-account.example.json
 backend/.env
 frontend/.env
 *.key
