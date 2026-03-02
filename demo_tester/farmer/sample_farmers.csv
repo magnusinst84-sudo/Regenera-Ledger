@@ -1,6 +1,0 @@
-name,email,phone,state,district,village,latitude,longitude,land_size_acres,crops,practices,soil_type,irrigation_type
-"Rajesh Kumar","rajesh.k@agrimail.in","+91 98765-43210","Punjab","Ludhiana","Heera Village",30.901,75.857,12.5,"Rice, Wheat","No-till, Cover Cropping","Alluvial","Drip"
-"Amina Begum","amina.b@eco-farmers.org","+91 87654-32109","Maharashtra","Pune","Mulshi Valley",18.520,73.856,8.2,"Cotton, Soybeans","Organic Mulching, Intercropping","Black Soil","Rain-fed"
-"Suresh G.","suresh.g@harvest.com","+91 76543-21098","Karnataka","Hassan","Belur North",13.100,75.860,25.0,"Coffee, Pepper","Shade-grown, Agroforestry","Red Loamy","Sprinkler"
-"Vikram Singh","vikram.trust@nature.in","+91 91234-56789","Haryana","Karnal","Nilokheri",29.830,76.920,40.0,"Rice, Mustard","Direct Seeded Rice (DSR), Green Manure","Clayey","Canal Integrated"
-"Priya Sharma","priya.s@regen.co","+91 99887-76655","Madhya Pradesh","Indore","Sanwer Road",22.719,75.857,5.5,"Pulses, Vegetables","Zero Budget Natural Farming (ZBNF)","Black Cotton","Drip"

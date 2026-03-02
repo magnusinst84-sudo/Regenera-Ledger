@@ -1,5 +1,0 @@
-supplier_id,supplier_name,location,emission_factor,total_volume_tons,category
-S-001,Punjab Steel Works,Ludhiana,2.4,500,Raw Material
-S-002,Haryana Polymer Lab,Gurugram,1.8,200,Chemicals
-S-003,EcoPackaging Ltd,Delhi,0.6,1000,Packaging
-S-004,Rapid Logistics,Chandigarh,1.2,150,Transportation
