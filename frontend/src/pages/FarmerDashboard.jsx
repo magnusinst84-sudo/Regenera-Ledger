@@ -34,17 +34,17 @@ export default function FarmerDashboard() {
             .finally(() => setLoading(false));
     }, []);
 
-    const d = data;
+    const d = data || {};
     // User is "new" if we have no profile ID or name, AND no land/credits
     const hasProfile = d && (d.id || d.name);
     const hasData = d && (parseFloat(d.acres) > 0 || parseFloat(d.credits_earned) > 0);
     const isNewUser = !hasProfile || !hasData;
 
     const STATS = [
-        { icon: '🌱', value: isNewUser ? '0' : d.credits_earned, label: 'tCO₂ Credits Earned' },
-        { icon: '💰', value: isNewUser ? '₹0' : d.earnings, label: 'Total Earnings' },
-        { icon: '🤝', value: isNewUser ? '0' : d.active_matches, label: 'Active Matches' },
-        { icon: '🌾', value: isNewUser ? '0' : d.acres, label: 'Acres Enrolled' },
+        { icon: '🌱', value: isNewUser ? '0' : (d.credits_earned || 0), label: 'tCO₂ Credits Earned' },
+        { icon: '💰', value: isNewUser ? '₹0' : (d.earnings || 0), label: 'Total Earnings' },
+        { icon: '🤝', value: isNewUser ? '0' : (d.active_matches || 0), label: 'Active Matches' },
+        { icon: '🌾', value: isNewUser ? '0' : (d.acres || 0), label: 'Acres Enrolled' },
     ];
 
     if (!loading && isNewUser) {

@@ -191,9 +191,10 @@ async def get_farmer_dashboard(user: dict = Depends(require_role("farmer"))):
     hectares = profile.get("land_size_hectares", 0)
     acres = hectares * 2.471 if hectares else float(profile.get("land_size_acres", 0) or 0)
 
+    # ── Robust Default Values for Frontend ──
     return {
         "id": profile["id"],
-        "name": profile.get("name", ""),
+        "name": profile.get("name", "Farmer"),
         "credits_earned": latest.get("sequestration_capacity_tons", 0),
         "earnings": latest.get("yearly_credit_potential", {}).get("estimated_revenue_usd_low", 0),
         "active_matches": 0,
@@ -202,11 +203,14 @@ async def get_farmer_dashboard(user: dict = Depends(require_role("farmer"))):
         "credit_history": [
             {
                 "id": e["id"],
-                "credits": e.get("sequestration_capacity_tons", 0),
+                "credits": e.get("result_json", {}).get("sequestration_capacity_tons", 0),
                 "date": e.get("created_at", ""),
+                "status": "Verified", # Logic can be expanded later
+                "value": e.get("result_json", {}).get("yearly_credit_potential", {}).get("estimated_revenue_usd_low", 0)
             }
             for e in estimations[:5]
         ],
+        "matches": [] # Placeholder for future matching logic
     }
 
 
