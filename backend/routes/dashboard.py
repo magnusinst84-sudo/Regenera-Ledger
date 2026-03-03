@@ -56,15 +56,19 @@ async def get_dashboard_stats(
     if profile:
         esg_score = profile.get("latest_esg_score", 0)
         co2_reported = profile.get("reported_emissions", {}).get("total_tco2e", 0)
-        # Derive risk flags from analyses, not the ESG score
-        risk_flags = sum(1 for a in analyses if a.get("result_json", {}).get("risk_score", 0) > 50)
+        # Handle None in risk_score
+        risk_flags = sum(
+            1 for a in analyses 
+            if (a.get("result_json") or {}).get("risk_score", 0) is not None 
+            and (a.get("result_json") or {}).get("risk_score", 0) > 50
+        )
     else:
-        raw_risk = esg_result.get("risk_score", 0) if esg_result else 0
-        greenwashing = esg_result.get("greenwashing_score", 0) if esg_result else 0
+        raw_risk = (esg_result.get("risk_score", 0) if esg_result else 0) or 0
+        greenwashing = (esg_result.get("greenwashing_score", 0) if esg_result else 0) or 0
         # ESG score = inverse of greenwashing (0 greenwash = 100 ESG)
         esg_score = max(0, 100 - int(greenwashing))
-        co2_reported = esg_result.get("reported_emissions", {}).get("total_tco2e", 0) if esg_result else 0
-        risk_flags = 1 if raw_risk > 50 else 0
+        co2_reported = (esg_result.get("reported_emissions") or {}).get("total_tco2e", 0) if esg_result else 0
+        risk_flags = 1 if int(raw_risk) > 50 else 0
 
     return {
         "esg_score": esg_score,
@@ -76,9 +80,10 @@ async def get_dashboard_stats(
                 "id": a["id"],
                 "type": a.get("analysis_type", ""),
                 "date": a.get("created_at", "")[:10] if a.get("created_at") else "—",
-                "score": max(0, 100 - int(a.get("result_json", {}).get("greenwashing_score", 0))),
-                "status": "Flagged" if a.get("result_json", {}).get("risk_score", 0) > 50 else "Clean",
-                "company": a.get("result_json", {}).get("company_name") or a.get("filename", "ESG Report")
+                # int(x or 0) handles None values gracefully
+                "score": max(0, 100 - int((a.get("result_json") or {}).get("greenwashing_score", 0) or 0)),
+                "status": "Flagged" if int((a.get("result_json") or {}).get("risk_score", 0) or 0) > 50 else "Clean",
+                "company": (a.get("result_json") or {}).get("company_name") or a.get("filename", "ESG Report")
             }
             for a in analyses[:5]
         ],
