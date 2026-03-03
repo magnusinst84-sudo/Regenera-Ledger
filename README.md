@@ -81,8 +81,12 @@ GEMINATHON/
     npm run dev
     ```
 
-## 🔐 Security Disclaimer
-For high-security production environments, ensure you replace the `JWT_SECRET` and follow best practices for Cloud Firestore security rules (provided in `database/firestore.rules`).
+## 👥 Builders
+
+*   **Suneev Kundu**: AI/Backend
+*   **Shaun Joseph**: Data/Matching Logic
+*   **Ayaan Saju**: Frontend
+*   **Tanmay Nair**: DevOps
 
 ## 📜 License
 This project is licensed under the MIT License - see the LICENSE file for details.
