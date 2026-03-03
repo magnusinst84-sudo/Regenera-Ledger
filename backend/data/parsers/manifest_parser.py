@@ -28,33 +28,71 @@ _COLUMN_MAP: dict[str, str] = {
     # supplier
     "supplier": "supplier",
     "supplier_name": "supplier",
+    # supplier_id intentionally excluded — it's a numeric ID not a name
     "vendor": "supplier",
+    "vendor_name": "supplier",
     "company": "supplier",
+    "company_name": "supplier",
+    "partner": "supplier",
+    "manufacturer": "supplier",
+    "factory": "supplier",
+    "plant": "supplier",
+    "entity": "supplier",
+    "name": "supplier",
     # quantity
     "qty": "quantity",
     "quantity": "quantity",
     "volume": "quantity",
     "amount": "quantity",
+    "units": "quantity",
+    "total_volume": "quantity",
+    "total_volume_tons": "quantity",
+    "weight": "quantity",
+    "tonnes": "quantity",
+    "tons": "quantity",
+    "kg": "quantity",
+    "shipment_qty": "quantity",
+    "order_quantity": "quantity",
     # origin
     "origin": "origin",
     "source": "origin",
     "from": "origin",
     "ship_from": "origin",
+    "location": "origin",
+    "city": "origin",
+    "country": "origin",
+    "region": "origin",
+    "plant_location": "origin",
+    "factory_location": "origin",
+    "source_location": "origin",
+    "origin_country": "origin",
+    "origin_city": "origin",
+    "manufacturing_location": "origin",
     # destination
     "destination": "destination",
     "dest": "destination",
     "to": "destination",
     "ship_to": "destination",
+    "delivery_location": "destination",
+    "delivery_city": "destination",
+    "destination_country": "destination",
+    "receiving_location": "destination",
     # transport
     "transport": "transport_mode",
     "transport_mode": "transport_mode",
     "mode": "transport_mode",
     "shipping_mode": "transport_mode",
+    "logistics_mode": "transport_mode",
+    "freight_mode": "transport_mode",
+    "shipment_mode": "transport_mode",
+    "delivery_mode": "transport_mode",
     # emission factor
     "emissions_factor": "emissions_factor",
     "emission_factor": "emissions_factor",
     "co2_factor": "emissions_factor",
     "ef": "emissions_factor",
+    "co2e_per_unit": "emissions_factor",
+    "carbon_factor": "emissions_factor",
 }
 
 # Default emission factors (kg CO₂e / tonne-km) by mode
@@ -190,9 +228,60 @@ def _text_to_manifest_df(text: str) -> pd.DataFrame:
 # ──────────────────────────────────────────────
 
 def _normalise_columns(df: pd.DataFrame) -> pd.DataFrame:
-    """Rename columns to canonical names using _COLUMN_MAP."""
+    """Rename columns to canonical names using _COLUMN_MAP, with fuzzy fallback."""
+    # Normalise: lowercase, strip spaces, replace spaces with underscores
     df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
+
+    # Drop supplier_id if supplier_name also exists (prefer the human-readable name)
+    if "supplier_id" in df.columns and "supplier_name" in df.columns:
+        df = df.drop(columns=["supplier_id"])
+
+    # Step 1: exact alias map match
     df = df.rename(columns={k: v for k, v in _COLUMN_MAP.items() if k in df.columns})
+
+    # De-duplicate: if renaming created duplicate column names, keep the last occurrence
+    df = df.loc[:, ~df.columns.duplicated(keep="last")]
+
+    # Step 2: fuzzy fallback — if a column name *contains* a canonical keyword, map it
+    _FUZZY_KEYWORDS = {
+        "supplier": "supplier",
+        "vendor": "supplier",
+        "manufacturer": "supplier",
+        "factory": "supplier",
+        "quantity": "quantity",
+        "volume": "quantity",
+        "weight": "quantity",
+        "tonnes": "quantity",
+        "tons": "quantity",
+        "origin": "origin",
+        "location": "origin",
+        "city": "origin",
+        "country": "origin",
+        "from": "origin",
+        "source": "origin",
+        "destination": "destination",
+        "dest": "destination",
+        "delivery": "destination",
+        "transport": "transport_mode",
+        "mode": "transport_mode",
+        "shipping": "transport_mode",
+        "emission": "emissions_factor",
+        "factor": "emissions_factor",
+        "co2": "emissions_factor",
+    }
+    rename_map = {}
+    canonical_already_present = set(df.columns)
+    for col in list(df.columns):
+        if col not in set(_COLUMN_MAP.values()):  # not already canonical
+            for keyword, canonical in _FUZZY_KEYWORDS.items():
+                if keyword in col and canonical not in canonical_already_present:
+                    rename_map[col] = canonical
+                    canonical_already_present.add(canonical)
+                    break
+    if rename_map:
+        logger.info("Fuzzy column mapping applied: %s", rename_map)
+        df = df.rename(columns=rename_map)
+
     return df
 
 

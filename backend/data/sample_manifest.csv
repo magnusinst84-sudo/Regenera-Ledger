@@ -1,0 +1,9 @@
+supplier_id,supplier_name,location,emission_factor,total_volume_tons,category
+S001,Punjab Steel Works,Ludhiana,0.062,400,Raw Materials
+S002,Haryana Polymer Lab,Panipat,0.022,120,Chemicals
+S003,EcoPackaging Ltd,Chennai,0.062,200,Packaging
+S004,Rapid Logistics,Mumbai,0.062,60,Freight
+S005,GreenFiber Textiles,Surat,0.022,150,Textiles
+S006,Eastern Coal Supply,Dhanbad,0.022,300,Energy
+S007,AgriChem Industries,Nagpur,0.062,80,Agriculture
+S008,Pacific Freight Co,Shanghai,0.008,500,International
