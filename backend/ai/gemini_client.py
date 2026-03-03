@@ -16,8 +16,12 @@ load_dotenv()
 
 _GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
-# Single model used for all tasks
-_MODEL = "gemini-2.5-flash"
+# fallback models in order of preference
+_FALLBACK_MODELS = [
+    "gemini-2.5-flash",
+    "gemma-3-27b-it",
+    "gemma-3-12b-it"
+]
 
 # Lazy-initialized client — created on first use so that importing this module
 # does NOT raise an error when GEMINI_API_KEY is not yet set (e.g. during tests
@@ -65,12 +69,13 @@ def _clean_json_response(raw: str) -> dict:
     return json.loads(cleaned)
 
 
-def call_gemini(prompt: str) -> dict:
+def call_gemini(prompt: str, model: str = _FALLBACK_MODELS[0]) -> dict:
     """
-    Send a prompt to Gemini and return parsed JSON response.
+    Send a prompt to Gemini/Gemma and return parsed JSON response.
 
     Args:
         prompt: The fully-formed prompt string.
+        model: The model name to use.
 
     Returns:
         Parsed dict from Gemini's JSON response.
@@ -80,49 +85,55 @@ def call_gemini(prompt: str) -> dict:
         RuntimeError: If Gemini returns an error or empty response.
     """
     response = _get_client().models.generate_content(
-        model=_MODEL,
+        model=model,
         contents=prompt,
         config=_GENERATION_CONFIG,
     )
 
     if not response.text:
-        raise RuntimeError("Gemini returned an empty response.")
+        raise RuntimeError(f"Model {model} returned an empty response.")
 
     try:
         return _clean_json_response(response.text)
     except json.JSONDecodeError as e:
         raise ValueError(
-            f"Gemini response was not valid JSON: {e}\nRaw response: {response.text[:500]}"
+            f"Model {model} response was not valid JSON: {e}\nRaw response: {response.text[:500]}"
         )
 
 
-async def call_gemini_async(prompt: str, max_retries: int = 3) -> dict:
+async def call_gemini_async(prompt: str, max_retries: int = 2) -> dict:
     """
-    Async wrapper for Gemini calls with built-in retry logic (exponential backoff).
-    Specially handles 429 RESOURCE_EXHAUSTED errors for the Free Tier.
+    Async wrapper for AI calls with multi-model fallback and retry logic.
+    Specially handles 429 RESOURCE_EXHAUSTED errors by switching models.
     """
     last_error = None
-    for attempt in range(max_retries + 1):
-        try:
-            fn: Any = cast(Any, call_gemini)
-            return await asyncio.to_thread(fn, prompt)
-        except Exception as e:
-            last_error = e
-            err_msg = str(e)
-            
-            # Check for Rate Limit (429)
-            if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
-                wait_time = (2 ** attempt) + 1  # 2, 3, 5, 9 seconds...
-                print(f"Gemini Rate Limit hit. Retrying in {wait_time}s (Attempt {attempt+1}/{max_retries+1})...")
-                await asyncio.sleep(wait_time)
-                continue
-            
-            # If it's a structural error (JSON, logic), don't retry, just raise
-            if isinstance(e, (ValueError, json.JSONDecodeError)):
-                raise e
+    
+    for model_name in _FALLBACK_MODELS:
+        for attempt in range(max_retries + 1):
+            try:
+                print(f"Calling AI model: {model_name} (Attempt {attempt+1})")
+                return await asyncio.to_thread(call_gemini, prompt, model_name)
+            except Exception as e:
+                last_error = e
+                err_msg = str(e).upper()
                 
-            # For other unexpected errors, retry once then fail
-            if attempt >= 1: break
-            await asyncio.sleep(1)
+                # Check for Rate Limit (429 / RESOURCE_EXHAUSTED)
+                if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
+                    if attempt < max_retries:
+                        wait_time = (2 ** attempt) + 1
+                        print(f"Rate Limit hit for {model_name}. Retrying in {wait_time}s...")
+                        await asyncio.sleep(wait_time)
+                        continue
+                    else:
+                        print(f"Rate Limit exhausted for {model_name}. Falling back to next model...")
+                        break # Try next model in _FALLBACK_MODELS
+                
+                # If it's a structural error (JSON, logic), don't retry, just raise
+                if isinstance(e, (ValueError, json.JSONDecodeError)):
+                    raise e
+                    
+                # For other unexpected errors, retry once then move on
+                if attempt >= 1: break
+                await asyncio.sleep(1)
 
-    raise last_error or RuntimeError("Gemini call failed after retries.")
+    raise last_error or RuntimeError("All AI models failed after retries.")
