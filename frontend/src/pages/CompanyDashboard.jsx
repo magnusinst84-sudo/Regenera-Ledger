@@ -419,7 +419,7 @@ export default function CompanyDashboard() {
             {/* Audit Timeline */}
             <div className="section-title">Audit History</div>
             <div className="card">
-                <AuditTimeline events={audit || undefined} />
+                <AuditTimeline events={audit?.logs || undefined} />
             </div>
         </div>
     );

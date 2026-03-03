@@ -8,11 +8,16 @@ import {
     PointElement,
     Tooltip,
     Legend,
+    BarController,
+    LineController,
 } from 'chart.js';
 import AIExplanationPanel from '../components/AIExplanationPanel';
 import { useState } from 'react';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, PointElement, Tooltip, Legend);
+ChartJS.register(
+    CategoryScale, LinearScale, BarElement, LineElement,
+    PointElement, Tooltip, Legend, BarController, LineController
+);
 
 const YEARS = ['2020', '2021', '2022', '2023', '2024'];
 const REPORTED = [14200, 13800, 12900, 12400, 11800];
