@@ -55,24 +55,35 @@ export default function Matching() {
         const fetchData = () => {
             getFarmers()
                 .then(res => {
-                    const data = res.data.farmers || res.data || [];
+                    const data = res.data?.farmers || res.data || [];
                     setProjects(Array.isArray(data) ? data : []);
                 })
-                .catch(() => setProjects([]))
+                .catch(err => {
+                    console.error("Marketplace fetch error:", err);
+                    setProjects([]);
+                })
                 .finally(() => setLoadingMap(false));
         };
 
-        fetchData(); // Initial load
-        const interval = setInterval(fetchData, 5000); // Poll every 5 seconds for "Real-time" demo
-        return () => clearInterval(interval);
+        fetchData();
+
+        // Safety timeout: stop loading after 8 seconds no matter what
+        const timer = setTimeout(() => setLoadingMap(false), 8000);
+
+        const interval = setInterval(fetchData, 10000); // 10s for demo
+        return () => {
+            clearInterval(interval);
+            clearTimeout(timer);
+        };
     }, []);
 
     const filtered = (projects || []).filter(p => {
         if (!p) return false;
         if (activeTab === 'All') return true;
-        const cat = p.category || 'Forestry';
-        if (activeTab === 'DAC' && (cat === 'DAC' || cat === 'Tech-Based DAC')) return true;
-        return cat === activeTab;
+        const cat = (p.category || 'Forestry').toLowerCase();
+        const tab = activeTab.toLowerCase();
+        if (tab === 'dac' && (cat === 'dac' || cat === 'tech-based dac')) return true;
+        return cat === tab;
     });
 
     const setTons = (id, value) => {

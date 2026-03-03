@@ -133,26 +133,36 @@ def get_farmer_candidates(company_location: dict = None) -> list:
             # Ensure owner/lead names show up for both types
             f["owner_name"] = f.get("owner_name") or f.get("name") or "Project Lead"
             f["email"] = f.get("email") or "contact@carbon-india.org"
+            f["location"] = f.get("location") or {"lat": 0, "lng": 0, "state": "India"}
 
-            # Fetch latest AI estimation — sort in-memory to guarantee recency
-            estimations = get_documents_by_field(
-                "carbon_estimations", "farmer_id", f["id"], limit=10
-            )
-            estimations.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+            # Fetch latest AI estimation — limit to 2 to keep it fast
+            try:
+                estimations = get_documents_by_field(
+                    "carbon_estimations", "farmer_id", f["id"], limit=2
+                )
+                if estimations:
+                    estimations.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+            except Exception as e:
+                logger.warning(f"Failed to fetch estimations for farmer {f['id']}: {e}")
+                estimations = []
             
             if estimations:
                 est = estimations[0].get("result_json", {})
-                f["category"] = est.get("project_category") or f.get("crop_type") or "Regen-Ag"
-                f["price_per_ton_usd"] = est.get("yearly_credit_potential", {}).get("estimated_revenue_usd_low", 12.0)
-                f["credits_available"] = est.get("sequestration_capacity_tons", 0)
-                f["durability_years"] = est.get("durability_years", 25)
-                f["credibility_score"] = est.get("credibility_score", 80)
+                raw_cat = est.get("project_category") or f.get("crop_type") or "Regen-Ag"
+                # Normalize category to Title Case for UI consistency (e.g., BLUE CARBON -> Blue Carbon)
+                f["category"] = str(raw_cat).title().replace("Dac", "DAC")
+                
+                f["price_per_ton_usd"] = float(est.get("yearly_credit_potential", {}).get("estimated_revenue_usd_low", 12.0) or 12.0)
+                f["credits_available"] = int(est.get("sequestration_capacity_tons", 0) or 0)
+                f["durability_years"] = int(est.get("durability_years", 25) or 25)
+                f["credibility_score"] = int(est.get("credibility_score", 80) or 80)
                 f["is_pending_audit"] = False
             else:
                 # ── Live Demo Resilience ──
                 # Default for manual farmers who haven't run estimation yet.
-                # These fields ensure the UI doesn't crash and shows a professional 'Audit Pending' state.
-                f["category"] = f.get("crop_type") or "Regen-Ag"
+                raw_cat = f.get("crop_type") or "Regen-Ag"
+                f["category"] = str(raw_cat).title().replace("Dac", "DAC")
+                
                 f["price_per_ton_usd"] = 10.0 # Standard demo floor price
                 f["credits_available"] = 150 # Placeholder demo credits
                 f["durability_years"] = 25
