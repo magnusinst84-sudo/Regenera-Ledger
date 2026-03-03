@@ -22,29 +22,45 @@ if BACKEND_DIR not in sys.path:
 
 def extract_text(file_path: str) -> str:
     """
-    Extract text from a file (PDF or TXT).
+    Extract text from a file (PDF, CSV, or TXT).
     """
     ext = os.path.splitext(file_path)[1].lower()
-    
-    # ── Handle Plain Text ──
-    if ext == ".txt":
+
+    # ── Handle Plain Text / CSV / Excel ──
+    if ext in (".txt", ".csv", ".tsv"):
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, "r", encoding="utf-8", errors="replace") as f:
                 return f.read()
         except Exception as e:
             raise RuntimeError(f"Text file reading failed: {str(e)}")
 
-    # ── Handle PDF ──
-    try:
-        from data.parsers.pdf_extractor import extract_text_from_pdf
-        return extract_text_from_pdf(file_path)
-    except ImportError:
-        logger.warning("T2 pdf_extractor not available, using pdfminer fallback")
+    if ext in (".xlsx", ".xls"):
         try:
-            from pdfminer.high_level import extract_text as pdfminer_extract
-            return pdfminer_extract(file_path)
+            import pandas as pd
+            df = pd.read_excel(file_path)
+            return df.to_csv(index=False)
         except Exception as e:
-            raise RuntimeError(f"PDF extraction failed: {str(e)}")
+            raise RuntimeError(f"Excel reading failed: {str(e)}")
+
+    # ── Handle PDF ──
+    if ext == ".pdf":
+        try:
+            from data.parsers.pdf_extractor import extract_text_from_pdf
+            return extract_text_from_pdf(file_path)
+        except ImportError:
+            logger.warning("T2 pdf_extractor not available, using pdfminer fallback")
+            try:
+                from pdfminer.high_level import extract_text as pdfminer_extract
+                return pdfminer_extract(file_path)
+            except Exception as e:
+                raise RuntimeError(f"PDF extraction failed: {str(e)}")
+
+    # ── Unknown extension — try reading as text ──
+    try:
+        with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+            return f.read()
+    except Exception as e:
+        raise RuntimeError(f"Could not read file with extension '{ext}': {str(e)}")
 
 
 def parse_manifest(file_path: str) -> dict:
