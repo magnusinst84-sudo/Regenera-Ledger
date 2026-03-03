@@ -180,6 +180,11 @@ export default function OffsetProjectCard({ project, tons = 0, onAdd, onDelete, 
     const projectLead = project.owner_name || project.name;
     const contactEmail = project.email || 'contact@carbon-india.org';
 
+    // Handle location if it's an object/dict
+    const locationDisplay = typeof project.location === 'object'
+        ? (project.location.state || project.location.village || 'India')
+        : (project.location || 'India');
+
     const [inputTons, setInputTons] = useState(tons);
     const lineCost = Math.round(inputTons * price);
 
@@ -235,7 +240,7 @@ export default function OffsetProjectCard({ project, tons = 0, onAdd, onDelete, 
                         )}
                     </div>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                        👤 Project Lead: <strong style={{ color: 'var(--text)' }}>{projectLead}</strong> · 📍 {project.location}
+                        👤 Project Lead: <strong style={{ color: 'var(--text)' }}>{projectLead}</strong> · 📍 {locationDisplay}
                         {durability >= 999
                             ? ' · ♾️ Permanent'
                             : ` · ${durability}-yr durability`}
