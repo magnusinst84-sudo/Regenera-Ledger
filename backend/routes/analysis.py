@@ -181,7 +181,6 @@ async def analyze_scope3(
         return {
             "id": result_id,
             "report_id": report_id,
-            "scope3_doc_id": scope3_doc_id,
             "analysis_type": "scope3",
             "result": result,
         }
