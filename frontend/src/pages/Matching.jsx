@@ -92,8 +92,6 @@ export default function Matching() {
     };
 
     const allocated = totalAllocated(cart);
-    const remaining = Math.max(0, totalDeficit - allocated);
-    const coveragePct = totalDeficit > 0 ? Math.min(100, Math.round((allocated / totalDeficit) * 100)) : 0;
     const costUSD = totalCost(cart, projects);
 
     const handleMatch = async () => {
@@ -155,38 +153,6 @@ Strategy rationale: Forestry provides immediate volume at scale. Regen-Ag create
                 </button>
             </div>
 
-            {/* ── Deficit Progress Bar ── */}
-            <div className="card mb-20">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
-                    <div style={{ fontWeight: 700, fontSize: '15px' }}>
-                        Portfolio Builder
-                        <span style={{ color: 'var(--text-muted)', fontWeight: 400, fontSize: '13px', marginLeft: '8px' }}>
-                            Carbon Gap: {totalDeficit.toLocaleString()} tCO₂e
-                        </span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '20px', fontSize: '13px' }}>
-                        <span>Allocated: <strong style={{ color: 'var(--accent)' }}>{allocated.toLocaleString()} t</strong></span>
-                        <span>Remaining: <strong style={{ color: remaining > 0 ? 'var(--warning)' : 'var(--accent)' }}>{remaining.toLocaleString()} t</strong></span>
-                        <span>Est. Cost: <strong style={{ color: 'var(--accent-2)' }}>${costUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}</strong></span>
-                    </div>
-                </div>
-                <div style={{ background: 'rgba(255,255,255,0.06)', borderRadius: '99px', height: '8px', overflow: 'hidden' }}>
-                    <div style={{
-                        width: `${coveragePct}%`, height: '8px', borderRadius: '99px',
-                        background: coveragePct >= 100
-                            ? 'linear-gradient(90deg,#00f5a0,#00d4ff)'
-                            : 'linear-gradient(90deg,#ffd166,#f4a261)',
-                        transition: 'width 0.4s ease',
-                    }} />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', fontSize: '11px', color: 'var(--text-muted)' }}>
-                    <span>0 t</span>
-                    <span style={{ color: coveragePct >= 100 ? 'var(--accent)' : 'var(--text-muted)', fontWeight: coveragePct >= 100 ? 700 : 400 }}>
-                        {coveragePct}% covered
-                    </span>
-                    <span>{totalDeficit.toLocaleString()} t</span>
-                </div>
-            </div>
 
             {/* ── Category Filter Tabs ── */}
             <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '20px' }}>
